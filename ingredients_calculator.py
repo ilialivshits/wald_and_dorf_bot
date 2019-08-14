@@ -1,43 +1,36 @@
-from openpyxl import load_workbook
-from save_numbers import read_numbers
 from table_handler import first_blank_row_finder
+from openpyxl import load_workbook # Работа с таблицами
 
-number_of_people, number_of_vegans = read_numbers()
+from save_numbers import read_numbers
+number_of_people, number_of_vegans = read_numbers()  #Количество людей и вегетарианцев среди них
 
 def ingredients_calculator(to_cook):
-    '''
-    :param to_cook:
-    :return: to_buy, unknown_dishes
-    '''
-
-    # Функция получает на вход список блюд (словарь to_cook)
-    # Также она обращается к файлу numbers.txt,
-    # В котором хранится количчество людей и количество вегеарианцев
-    # Ещё она обращается к excel-таблице ingredients,
-    # В которой хранятся рецепты блюд
-    # На выходе она выдаст список продуктов для покупки (словарь to_buy)
-    # И, возможно, список неизвестных ей блюд (unknown_dishes),
-    # Т. е. тех, которые не были найдены в таблице ingredients
+    # ВХОД: список блюд (словарь to_cook)
+    #        количество людей и вегетарианцев среди них (number_of_people, number_of_vegans),
+    #        таблица с количествами каждого ингредиента в блюде на человека (ingredients.xslx),
+    # ВЫХОД: список продуктов для покупки (словарь to_buy),
+    #        список ненайденных в таблице ingredients блюд (unknown_dishes)
 
     to_buy = dict()
     unknown_dishes = set()
 
-    # Импорт таблицы с граммовками
+    # Импортируем таблицу с ингредиентами
     ingredients = load_workbook(filename='ingredients.xlsx')['Ingredients']
-
+    # Находим перву пустую строку
     ingredients_first_blank_row = first_blank_row_finder(ingredients, 3)
 
-    # В dish_names запишем все названия блюд
+    # В dish_names запишем все названия блюд (из первого столбца)
     dish_names = [ingredients.cell(row=i, column=1) for i in range(1, ingredients_first_blank_row)]
 
-    # Функция ниже находит нужное название блюда в списке dish_names и выдаёт его строку
+    # Функция ниже находит нужное название блюда в списке блюд и выдаёт его строку
+    # Если блюдо не найдено, выдаёт not_found
     def search_dish(name):
         for cell in dish_names:
             if cell.value == name:
                 return cell.row
         return 'not_found'
 
-    # Эта функция получает на вход строку блюда.
+    # Функция ниже получает на вход строку блюда.
     # Она показывает, сколько строк ингредиентов относится к этому блюду
     def search_next_dish(row):
         end = 1
@@ -47,10 +40,10 @@ def ingredients_calculator(to_cook):
             end += 1
         return end
 
-    # Для каждого блюда в списке to_cook
+    # Обрабатываем блюда в списке to_cook
     for dish in to_cook:
         row = search_dish(dish)
-        # Находим его ряд
+        # Находим ряд блюда
         if row == 'not_found':
             # Если блюда нет в таблице ingredients
             # То мы добавим его в список ненайденных блюд

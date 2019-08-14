@@ -4,6 +4,9 @@ from openpyxl import load_workbook
 from table_handler import first_blank_row_finder
 
 def find_unit(ingredient):
+    # ВХОД: ингредиент
+    # ВЫХОД: единица его измерения
+    #        если не найдена, возвращает "г"
     units = load_workbook(filename='units.xlsx')['Units']
     units_first_blank_row = first_blank_row_finder(units, 1)
     units_keys = [units.cell(row=i, column=1) for i in range(1, units_first_blank_row)]
@@ -21,17 +24,19 @@ def to_buy_handler(to_buy):
 
 def unknown_dishes_handler(unknown_dishes):
     if unknown_dishes:
-        return 'Следующие блюда не были найдены в таблице блюд, поэтому мы не посчитали их: ' + ', '.join(unknown_dishes)
+        return 'Следующие блюда не были найдены в таблице блюд, поэтому не были посчитаны: ' + ', '.join(unknown_dishes)
     else:
         return ''
 
 def repeated_dishes_handler(repeated_dishes):
     if repeated_dishes:
-        return 'Следующие блюда повторялись в вашем сообщении, поэтому мы посчитали их больше одного раза: ' + ', '.join(repeated_dishes)
+        return 'Следующие блюда повторялись в вашем сообщении, поэтому были посчитаны больше одного раза: ' + ', '.join(repeated_dishes)
     else:
         return ''
 
 def message_composer(message_from_chief):
+    # ВХОД: сообщение от пользователя
+    # ВЫХОД: сообщение пользователю
     to_cook, repeated_dishes = dish_parser(message_from_chief)
     if to_cook:
         to_buy, unknown_dishes = ingredients_calculator(to_cook)
